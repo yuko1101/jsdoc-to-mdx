@@ -94,7 +94,6 @@ tmp.withDir(async tempDir => {
   await donePromise;
 
   const ast = JSON.parse(fs.readFileSync(tempFile).toString());
-  fs.writeFileSync("./output.json", JSON.stringify(ast));
   const templateData = jsdocParse(ast) as Identifier[];
 
   const classes: { [key: string]: DocumentedClass } = {};
