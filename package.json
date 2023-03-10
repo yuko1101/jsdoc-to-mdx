@@ -1,5 +1,5 @@
 {
-  "name": "jsdoc-to-mdx",
+  "name": "@yuko1101/jsdoc-to-mdx",
   "version": "1.2.1",
   "description": "jsdoc to mdx API document generator",
   "main": "index.js",
