@@ -32,40 +32,65 @@ export const parseTypescriptName = (name: string) => {
   return matched[1] ?? name;
 };
 export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams) => {
-  const genericRegex = /^(?:(\S+)<)([^<>]+)+(?:>)$/;
+  const genericRegex = /^(?:(\S+?)<)(.+)+(?:>)$/;
   const arrayRegex = /^(\S+)\[\]$/;
+  const objectRegex = /^{(.+)}$/;
+  const separatorRegex = /[|&,]/;
 
   if (!type) return "";
 
   return type.names
     .map(name => parseTypescriptName(name))
     .map(name => {
-      const checkingValues = [name];
+      const checkingValues: string[] = [];
 
-      const genericMatches = genericRegex.exec(name);
-      if (genericMatches) {
-        genericMatches[1] && checkingValues.push(genericMatches[1]);
-        genericMatches[2] && checkingValues.push(genericMatches[2]);
+      function pushTypes(typeName: string) {
+        console.log(typeName);
+        if (arrayRegex.test(typeName)) {
+          pushArrayMatches(typeName);
+        } else if (objectRegex.test(typeName)) {
+          pushObjectMatches(typeName);
+        } else if (genericRegex.test(typeName)) {
+          pushGenericMatches(typeName);
+        } else if (separatorRegex.test(typeName)) {
+          typeName
+            .replace(/<(.+)>|\((.+)\)|{(.+)}/g, ($0) => `${$0.replace(new RegExp(separatorRegex, "g"), "%separator%")}`) // カッコ内の"区切り"では区切らないようにする
+            .replace(/[\(\)]/g, "")
+            .split(separatorRegex)
+            .map(val => val.trim())
+            .forEach(val => pushTypes(val.replace(/%separator%/g, ","))); // %separator%を区切れ目だとわかれば何でも良いので | & , のいずれかにする (オブジェクトを崩さないことを考えると ,　がベスト)
+        } else {
+          checkingValues.push(typeName);
+        }
       }
 
-      const arrayMatches = arrayRegex.exec(name);
-      if (arrayMatches) {
-        arrayMatches[1] && checkingValues.push(arrayMatches[1]);
+      function pushGenericMatches(typeName: string) {
+        const genericMatches = genericRegex.exec(typeName);
+        checkingValues.push(genericMatches![1]);
+        pushTypes(genericMatches![2]);
       }
+
+      function pushArrayMatches(typeName: string) {
+        const arrayMatches = arrayRegex.exec(typeName);
+        pushTypes(arrayMatches![1]);
+      }
+
+      function pushObjectMatches(typeName: string) {
+        const objectMatches = objectRegex.exec(typeName);
+        const matched = objectMatches![1];
+        const valueTypes = (matched.split(",").map(e => e.split(":")[1]).map(e => e.trim()));
+        valueTypes.forEach(t => pushTypes(t));
+      }
+
+      pushTypes(name);
 
       const checked: { [key: string]: boolean } = {};
 
-      checkingValues.forEach(typeName => {
-        typeName.split("|")
-          .map(val => val.split("&"))
-          .reduce((total, val) => [...total, ...val], [])
-          .map(val => val.trim())
-          .forEach(val => {
-            if (dataMap.has(val) && !checked[val]) {
-              checked[val] = true;
-              name = name.replace(val, `[${val}](${val.replace(/event:/g, "event-").replace(/\./g, ":")})`);
-            }
-          });
+      checkingValues.forEach(val => {
+        if (dataMap.has(val) && !checked[val]) {
+          checked[val] = true;
+          name = name.replace(val, `[${val}](${val.replace(/event:/g, "event-").replace(/\./g, ":")})`);
+        }
       });
 
       return name;
@@ -177,11 +202,11 @@ export const showImplements = (data: Identifier) => data.implements && data.impl
 
 export const showTags = (data: Identifier, docParams: DocumentParams) => `<div${docParams.config.bulma ? ` className="bulma-tags"` : ""}>
 ${[
-  isStatic(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-info" : "badge badge--info"}">static</span>` : null,
-  isReadonly(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-warning" : "badge badge--warning"}">readonly</span>` : null,
-  isInherited(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-danger" : "badge badge--danger"}">inherited</span>` : null,
-  isAsync(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-success" : "badge badge--success"}">async</span>` : null
-].filter(val => !!val).map(val => `  ${val}`).join("\n")}
+    isStatic(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-info" : "badge badge--info"}">static</span>` : null,
+    isReadonly(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-warning" : "badge badge--warning"}">readonly</span>` : null,
+    isInherited(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-danger" : "badge badge--danger"}">inherited</span>` : null,
+    isAsync(data) ? `<span className="${docParams.config.bulma ? "bulma-tag is-success" : "badge badge--success"}">async</span>` : null
+  ].filter(val => !!val).map(val => `  ${val}`).join("\n")}
 </div>`;
 
 export const showType = (type: Identifier["type"], docParams: DocumentParams) => type
@@ -218,10 +243,10 @@ export const showProperties = (properties: Identifier["properties"], docParams: 
   return `|PROPERTY|TYPE|${defaultTitle}DESCRIPTION|
 |:---:|:---:|${defaultLine}:---:|
 ${properties.map(param => {
-  const defaultValue = hasDefault ? `${`${param.defaultvalue ?? ""}`.trim()}|` : "";
+    const defaultValue = hasDefault ? `${`${param.defaultvalue ?? ""}`.trim()}|` : "";
 
-  return `|${param.name}|${parseType(param.type, docParams)}|${defaultValue}${inlineLink(getDescription(param, docParams))}|`;
-}).join("\n")}`;
+    return `|${param.name}|${parseType(param.type, docParams)}|${defaultValue}${inlineLink(getDescription(param, docParams))}|`;
+  }).join("\n")}`;
 }
 
 export const showThrows = (throws: Identifier["exceptions"], docParams: DocumentParams) => throws && throws.length > 0
