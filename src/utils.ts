@@ -45,7 +45,7 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams)
       const checkingValues: string[] = [];
 
       function pushTypes(typeName: string) {
-        console.log(typeName);
+        // console.log(typeName);
         if (arrayRegex.test(typeName)) {
           pushArrayMatches(typeName);
         } else if (objectRegex.test(typeName)) {
