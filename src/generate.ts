@@ -94,14 +94,15 @@ tmp.withDir(async tempDir => {
   await donePromise;
 
   const ast = JSON.parse(fs.readFileSync(tempFile).toString());
+  fs.writeFileSync("./output.json", JSON.stringify(ast));
   const templateData = jsdocParse(ast) as Identifier[];
 
-  const classes: {[key: string]: DocumentedClass} = {};
-  const interfaces: {[key: string]: DocumentedInterface} = {};
-  const namespaces: {[key: string]: DocumentedNamespace} = {};
-  const constants: {[key: string]: Identifier} = {};
-  const typedefs: {[key: string]: Identifier} = {};
-  const globals: {[key: string]: Identifier} = {};
+  const classes: { [key: string]: DocumentedClass } = {};
+  const interfaces: { [key: string]: DocumentedInterface } = {};
+  const namespaces: { [key: string]: DocumentedNamespace } = {};
+  const constants: { [key: string]: Identifier } = {};
+  const typedefs: { [key: string]: Identifier } = {};
+  const globals: { [key: string]: Identifier } = {};
 
   const dataMap = new Map<string, Identifier>();
 
