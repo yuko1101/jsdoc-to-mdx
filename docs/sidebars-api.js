@@ -5,7 +5,6 @@ module.exports = {
       "label": "Class",
       "items": [
         "api/DummyClass",
-        "api/JavaScriptClass",
         "api/ParentClass"
       ]
     },

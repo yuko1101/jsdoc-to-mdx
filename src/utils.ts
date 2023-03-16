@@ -78,7 +78,7 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams)
       function pushObjectMatches(typeName: string) {
         const objectMatches = objectRegex.exec(typeName);
         const matched = objectMatches![1];
-        const valueTypes = (matched.split(",").map(e => e.split(":")[1]).map(e => e.trim()));
+        const valueTypes = matched.split(",").map(e => e.split(":")[1]).map(e => e?.trim()).filter(e => e);
         valueTypes.forEach(t => pushTypes(t));
       }
 
