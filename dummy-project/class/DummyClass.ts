@@ -68,10 +68,11 @@ class DummyClass extends ParentClass implements DummyInterface {
 
   /**
    * Method A
+   * @private
    * @param {number} a description of param a<ko>패러미터 A의 설명</ko>
    * @param {string} [b="DUMMY_TEXT"] description of param b<ko>패러미터 B의 설명</ko>
    */
-  public methodA(a: number, b: string = "DUMMY_TEXT") {
+  private methodA(a: number, b: string = "DUMMY_TEXT") {
 
   }
 }
