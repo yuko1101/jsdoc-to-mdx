@@ -32,7 +32,7 @@ export const parseTypescriptName = (name: string) => {
 
   return matched[1] ?? name;
 };
-export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams) => {
+export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams, encodeHtml: boolean = true) => {
   const genericRegex = /^(?:(\S+?)<)(.+)+(?:>)$/;
   const arrayRegex = /^(\S+)\[\]$/;
   const objectRegex = /^{(.+)}$/;
@@ -40,7 +40,7 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams)
 
   if (!type) return "";
 
-  return type.names
+  const parsedType = type.names
     .map(name => parseTypescriptName(name))
     .map(name => {
       const checkingValues: string[] = [];
@@ -98,9 +98,9 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams)
     })
     .join(" | ")
     .replace(/\|/g, "\\|")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
     .replace(/Array\./g, "Array");
+
+  return encodeHtml ? parsedType.replace(/</g, "&lt;").replace(/>/g, "&gt;") : parsedType;
 };
 export const parseName = (name: string) => {
   const parsed = /(?:\S):(?:\S)[.|#](\S)+/.exec(name);
@@ -272,5 +272,5 @@ export const showFunctionParams = (data: Identifier, docParams: DocumentParams) 
   // Remove props inside objects
   const params = (data.params ?? []).filter(param => !param.name.includes("."))
 
-  return `(${params.map(param => `${param.name}: ${parseType(param.type, docParams)}${param.defaultvalue ? ` = ${param.defaultvalue}` : ""}`).join(", ")})`
+  return `(${params.map(param => `${param.name}: ${parseType(param.type, docParams, false)}${param.defaultvalue ? ` = ${param.defaultvalue}` : ""}`).join(", ")})`
 }
