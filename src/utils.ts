@@ -34,7 +34,7 @@ export const parseTypescriptName = (name: string) => {
 };
 export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams, encodeHtml: boolean = true) => {
   const genericRegex = /^(?:(\S+?)<)(.+)+(?:>)$/;
-  const arrayRegex = /^(\S+)\[\]$/;
+  const arrayRegex = /^(.+)\[\]$/;
   const objectRegex = /^{(.+)}$/;
   const separatorRegex = /[|&,]/;
 
