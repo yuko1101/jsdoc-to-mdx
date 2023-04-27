@@ -1,6 +1,8 @@
 node_modules/
 docs/
 dummy-project/
+src/
 .editorconfig
 config.json
 rollup.config.json
+tsconfig.json
