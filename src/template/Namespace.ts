@@ -22,5 +22,5 @@ namespace ${data.name}
 ${inlineLink(data.description)}
 
 ## Members
-${data.members.map(member => Entity(member, params)).join("\n")}
+${data.members.map(member => Entity(member, params)).map(str => str + "\n\n---").join("\n\n")}
 `.replace(/\n{3,}/gm, "\n\n");

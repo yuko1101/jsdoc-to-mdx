@@ -11,5 +11,5 @@ export default (classData: DocumentedClass, params: DocumentParams) => {
   if (classData.events.length <= 0) return "";
 
   return `## Events
-${classData.events.map(evt => Entity(evt, params)).join("\n")}`;
+${classData.events.map(evt => Entity(evt, params)).map(str => str + "\n\n---").join("\n\n")}`;
 };
