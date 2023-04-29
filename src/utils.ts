@@ -33,10 +33,15 @@ export const parseTypescriptName = (name: string) => {
   return matched[1] ?? name;
 };
 export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams, encodeHtml: boolean = true) => {
+  // e.g. { [key in Key]: number } but actually: [key extends Key]: number
+  const keysInStringsObjectRegex = /^\[(?:[^:]+) extends ([^\]]+)\]:(.+)$/
   const genericRegex = /^(?:(\S+?)<)(.+)+(?:>)$/;
   const arrayRegex = /^(.+)\[\]$/;
   const objectRegex = /^{(.+)}$/;
   const separatorRegex = /[|&,]/;
+
+  // e.g. { [key: string]: number }
+  const dynamicObjectRegex = /^\[(?:[^:]+):(?:[^\]]+)\]:(.+)$/;
 
   if (!type) return "";
 
@@ -46,8 +51,12 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams,
       const checkingValues: string[] = [];
 
       function pushTypes(typeName: string) {
-        // console.log(typeName);
-        if (arrayRegex.test(typeName)) {
+        console.log(typeName);
+        if (keysInStringsObjectRegex.test(typeName)) {
+          const matched = keysInStringsObjectRegex.exec(typeName)!;
+          pushTypes(matched[1].trim());
+          pushTypes(matched[2].trim());
+        } else if (arrayRegex.test(typeName)) {
           pushArrayMatches(typeName);
         } else if (objectRegex.test(typeName)) {
           pushObjectMatches(typeName);
@@ -79,8 +88,12 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams,
       function pushObjectMatches(typeName: string) {
         const objectMatches = objectRegex.exec(typeName);
         const matched = objectMatches![1];
-        const valueTypes = matched.split(/,|;/).map(e => e.split(":")[1]).map(e => e?.trim()).filter(e => e);
-        valueTypes.forEach(t => pushTypes(t));
+        if (dynamicObjectRegex.test(matched)) {
+          pushTypes(dynamicObjectRegex.exec(matched)![1].trim());
+        } else {
+          const valueTypes = matched.split(/,|;/).map(e => e.split(":")[1]).map(e => e?.trim()).filter(e => e);
+          valueTypes.forEach(t => pushTypes(t));
+        }
       }
 
       pushTypes(name);
