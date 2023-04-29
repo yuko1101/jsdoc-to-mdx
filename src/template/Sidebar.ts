@@ -19,7 +19,7 @@ export default ({
   typedefs: Identifier[];
   globals: Identifier[];
 }, prefix: string) => {
-  const sidebar: {[key: string]: any} = {};
+  const sidebar: { [key: string]: any } = {};
 
   const categories: any[] = [];
   sidebar.api = categories;
@@ -28,7 +28,7 @@ export default ({
     categories.push({
       type: "category",
       label: "Class",
-      items: classes.map(item => `${prefix}${item.name}`)
+      items: [...classes].sort((a, b) => a.name.localeCompare(b.name)).map(item => `${prefix}${item.name}`)
     });
   }
 
@@ -36,7 +36,7 @@ export default ({
     categories.push({
       type: "category",
       label: "Interface",
-      items: interfaces.map(item => `${prefix}${item.name}`)
+      items: [...interfaces].sort((a, b) => a.name.localeCompare(b.name)).map(item => `${prefix}${item.name}`)
     });
   }
 
@@ -44,7 +44,7 @@ export default ({
     categories.push({
       type: "category",
       label: "Namespace",
-      items: namespaces.map(item => `${prefix}${item.name}`)
+      items: [...namespaces].sort((a, b) => a.name.localeCompare(b.name)).map(item => `${prefix}${item.name}`)
     });
   }
 
@@ -52,7 +52,7 @@ export default ({
     categories.push({
       type: "category",
       label: "Constant",
-      items: constants.map(item => `${prefix}${item.name}`)
+      items: [...constants].sort((a, b) => a.name.localeCompare(b.name)).map(item => `${prefix}${item.name}`)
     });
   }
 
@@ -60,7 +60,7 @@ export default ({
     categories.push({
       type: "category",
       label: "Typedef",
-      items: typedefs.map(item => `${prefix}${item.name}`)
+      items: [...typedefs].sort((a, b) => a.name.localeCompare(b.name)).map(item => `${prefix}${item.name}`)
     });
   }
 
@@ -68,7 +68,7 @@ export default ({
     categories.push({
       type: "category",
       label: "Global",
-      items: globals.map(item => `${prefix}${item.name}`)
+      items: [...globals].sort((a, b) => a.name.localeCompare(b.name)).map(item => `${prefix}${item.name}`)
     });
   }
 
