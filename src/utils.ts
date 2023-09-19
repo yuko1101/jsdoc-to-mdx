@@ -35,6 +35,7 @@ export const parseTypescriptName = (name: string) => {
 export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams, encodeHtml: boolean = true) => {
   // e.g. { [key in Key]: number } but actually: [key extends Key]: number
   const keysInStringsObjectRegex = /^\[(?:[^:]+) extends ([^\]]+)\]:(.+)$/
+  const functionRegex = /^\(((?:.+):(?:.+))\) *=> *(.+)$/;
   const genericRegex = /^(?:(\S+?)<)(.+)+(?:>)$/;
   const arrayRegex = /^(.+)\[\]$/;
   const objectRegex = /^{(.+)}$/;
@@ -51,11 +52,13 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams,
       const checkingValues: string[] = [];
 
       function pushTypes(typeName: string) {
-        console.log(typeName);
+        console.log("typeName", typeName);
         if (keysInStringsObjectRegex.test(typeName)) {
           const matched = keysInStringsObjectRegex.exec(typeName)!;
           pushTypes(matched[1].trim());
           pushTypes(matched[2].trim());
+        } else if (functionRegex.test(typeName)) {
+          pushFunctionMatches(typeName);
         } else if (arrayRegex.test(typeName)) {
           pushArrayMatches(typeName);
         } else if (objectRegex.test(typeName)) {
@@ -64,7 +67,7 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams,
           pushGenericMatches(typeName);
         } else if (separatorRegex.test(typeName)) {
           typeName
-            .replace(/<(.+)>|\((.+)\)|{(.+)}/g, ($0) => `${$0.replace(new RegExp(separatorRegex, "g"), "%separator%")}`) // カッコ内の"区切り"では区切らないようにする
+            .replace(/<(.+)>|\((.+)\)|{(.+)}/g, ($0) => { console.log("$0", $0); return `${$0.replace(new RegExp(separatorRegex, "g"), "%separator%")}` }) // カッコ内の"区切り"では区切らないようにする
             .replace(/[\(\)]/g, "")
             .split(separatorRegex)
             .map(val => val.trim())
@@ -94,6 +97,17 @@ export const parseType = (type: Identifier["type"], { dataMap }: DocumentParams,
           const valueTypes = matched.split(/,|;/).map(e => e.split(":")[1]).map(e => e?.trim()).filter(e => e);
           valueTypes.forEach(t => pushTypes(t));
         }
+      }
+
+      function pushFunctionMatches(typeName: string) {
+        const functionMatches = functionRegex.exec(typeName);
+        const params = functionMatches![1];
+        const returns = functionMatches![2];
+
+        const valueTypes = params.split(",").map(e => e.split(":")[1]).map(e => e?.trim()).filter(e => e);
+        valueTypes.forEach(t => pushTypes(t));
+
+        pushTypes(returns);
       }
 
       pushTypes(name);

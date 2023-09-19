@@ -36,9 +36,9 @@ module.exports = {
       "label": "Typedef",
       "items": [
         "api/DefaultInterfaceTypedef",
-        "api/StringOrNumber",
         "api/InlinePropertyInterfaceTypedef",
-        "api/InterfaceTypedef"
+        "api/InterfaceTypedef",
+        "api/StringOrNumber"
       ]
     },
     {
